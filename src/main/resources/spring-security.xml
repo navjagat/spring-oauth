@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
+	xmlns:sec="http://www.springframework.org/schema/security" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:c="http://www.springframework.org/schema/c" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-1.0.xsd
+        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<oauth:authorization-server
+		client-details-service-ref="clientDetails" token-services-ref="tokenService"
+		user-approval-handler-ref="approvalHandler" token-endpoint-url="${auth.url}">
+		<oauth:authorization-code/>
+		<oauth:implicit/>
+		<oauth:refresh-token/>
+		<oauth:client-credentials/>
+		<oauth:password authentication-manager-ref="oauthAuthenticationManager"/>
+	</oauth:authorization-server>
+
+	<oauth:resource-server id="resourceServerFilter"
+		token-services-ref="tokenService" resource-id="my-gateway"/>
+
+
+	<sec:http pattern="${auth.url}" create-session="stateless"
+		authentication-manager-ref="oauthAuthenticationManager" use-expressions="true">
+		<sec:intercept-url pattern="${auth.url}" access="authenticated" />
+		<sec:http-basic entry-point-ref="clientAuthenticationEntryPoint" />
+		<sec:custom-filter ref="clientCredentialsTokenEndpointFilter"
+			after="BASIC_AUTH_FILTER" />
+		<sec:custom-filter ref="oAuth2ClientContextFilter"
+			after="EXCEPTION_TRANSLATION_FILTER	"/>
+		<sec:csrf disabled="true"/>
+	</sec:http>
+
+	<sec:http pattern="/customer/**" create-session="never"
+		authentication-manager-ref="oauthAuthenticationManager">
+		<sec:anonymous enabled="false" />
+		<sec:intercept-url pattern="/customer/**" method="GET"
+			access="authenticated" />
+		<sec:custom-filter ref="resourceServerFilter"
+			before="PRE_AUTH_FILTER" />
+		<sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" />
+		<sec:csrf disabled="true"/>
+	</sec:http>
+
+	<sec:authentication-manager alias="oauthAuthenticationManager">
+		<sec:authentication-provider
+			user-service-ref="clientDetailsService">
+			<sec:password-encoder ref="encoder" />
+		</sec:authentication-provider>
+	</sec:authentication-manager>
+	
+	<!-- <sec:authentication-manager alias="authenticationManager">
+		<sec:authentication-provider user-service-ref="user">
+			<sec:password-encoder ref="encoder"/>
+		</sec:authentication-provider>
+	</sec:authentication-manager> -->
+	
+	<sec:global-method-security pre-post-annotations="enabled">
+		<sec:expression-handler ref="expHandler"/>
+	</sec:global-method-security>
+
+	<bean id="encoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+		<constructor-arg name="strength" value="6" />
+	</bean>
+	
+	<bean  id="expHandler" class="org.springframework.security.oauth2.provider.expression.OAuth2MethodSecurityExpressionHandler"
+		p:permissionEvaluator-ref="myPermEvaluator"/>
+	
+	<bean id="myPermEvaluator" class="com.practice.acl.permission.MyPermission"/>
+	
+	<!-- Authentication Filter for clients -->
+	<bean id="clientCredentialsTokenEndpointFilter"
+		class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter"
+		p:authenticationManager-ref="oauthAuthenticationManager" c:path="${auth.url}"
+		p:allowOnlyPost="true"/>
+
+	<bean id="oAuth2ClientContextFilter"
+		class="org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter">
+	</bean>
+	
+	<bean id="user" class="com.practice.acl.service.Impl.CustomUserDetailsService"/>
+
+	<bean id="clientDetails"
+		class="org.springframework.security.oauth2.provider.client.JdbcClientDetailsService"
+		c:_0-ref="dataSource" />
+
+	<bean id="clientDetailsService"
+		class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService"
+		c:_0-ref="clientDetails" />
+
+	<bean id="tokenDao"
+		class="org.springframework.security.oauth2.provider.token.store.JdbcTokenStore">
+		<constructor-arg ref="dataSource" />
+	</bean>
+
+	<bean id="tokenService"
+		class="org.springframework.security.oauth2.provider.token.DefaultTokenServices"
+		p:tokenStore-ref="tokenDao" p:supportRefreshToken="true"
+		p:clientDetailsService-ref="clientDetails"
+		p:tokenEnhancer-ref="tokenConvertor"/>
+		
+	<bean id="tokenConvertor" class="org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter"/>
+
+	<bean id="requestFactory"
+		class="org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory"
+		c:_0-ref="clientDetails" />
+	
+	<!-- A user approval handler that remembers approval decisions by consulting existing tokens -->
+	<bean id="approvalHandler"
+		class="org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler"
+		p:requestFactory-ref="requestFactory" p:tokenStore-ref="tokenDao" />
+
+	<bean id="clientAuthenticationEntryPoint"
+		class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
+		<property name="realmName" value="Authorization/client" />
+		<property name="typeName" value="Basic" />
+	</bean>
+
+	<bean id="oauthAuthenticationEntryPoint"
+		class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
+		<property name="realmName" value="Authorization"/>
+	</bean>
+
+</beans>
