@@ -1,8 +1,14 @@
 package com.practice.acl.entiry;
 
+import java.util.List;
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -19,18 +25,21 @@ public class Client {
 	@Column(name="client_secret")
 	private String clientSecret;
 	
-	@Column(name="authorized_grant_types")
-	private String grantType;
+	@ManyToMany(targetEntity=Grants.class)
+	@JoinTable(name="client_grant", joinColumns={@JoinColumn(name="client_id")},
+			inverseJoinColumns={@JoinColumn(name="grant_id")})
+	private Set<Grants> grantType;
 	
-	private String scope;
-	
-	private String authorities;
+	@ManyToMany(targetEntity=Role.class)
+	@JoinTable(name="client_role", joinColumns={@JoinColumn(name="client_id")},
+			inverseJoinColumns={@JoinColumn(name="role_id")})
+	private List<Role> roles;
 	
 	@Column(name="access_token_validity")
-	private int accessTokenValidity;
+	private Integer accessTokenValidity;
 	
 	@Column(name="refresh_token_validity")
-	private int refreshTokenValidity;
+	private Integer refreshTokenValidity;
 	
 	@Column(name="web_server_redirect_uri")
 	private String redirectUri;
@@ -48,12 +57,15 @@ public class Client {
 	
 	public Client(Client client) {
 		this.accessTokenValidity = client.getAccessTokenValidity();
-		this.authorities = client.getAuthorities();
+		this.roles = client.getRoles();
 		this.clientId = client.getClientId();
 		this.grantType = client.getGrantType();
 		this.refreshTokenValidity = client.getRefreshTokenValidity();
 		this.resourceId = client.getResourceId();
-		this.scope = client.getScope();
+		this.account = client.getAccount();
+		this.clientSecret = client.getClientSecret();
+		this.autoApprove = client.isAutoApprove();
+
 	}
 
 	public String getClientId() {
@@ -80,99 +92,68 @@ public class Client {
 		this.clientSecret = clientSecret;
 	}
 
-	public String getGrantType() {
+	public Set<Grants> getGrantType() {
 		return grantType;
 	}
 
-	public void setGrantType(String grantType) {
+	public void setGrantType(Set<Grants> grantType) {
 		this.grantType = grantType;
 	}
 
-	public String getScope() {
-		return scope;
-	}
-
-	public void setScope(String scopes) {
-		this.scope = scopes;
-	}
-
-	public String getAuthorities() {
-		return authorities;
-	}
-
-	public void setAuthorities(String roles) {
-		this.authorities = roles;
-	}
-
-	public int getAccessTokenValidity() {
+	public Integer getAccessTokenValidity() {
 		return accessTokenValidity;
 	}
 
-	public void setAccessTokenValidity(int accessTokenValidity) {
+	public void setAccessTokenValidity(Integer accessTokenValidity) {
 		this.accessTokenValidity = accessTokenValidity;
 	}
 
-	public int getRefreshTokenValidity() {
+	public Integer getRefreshTokenValidity() {
 		return refreshTokenValidity;
 	}
 
-	public void setRefreshTokenValidity(int refreshTokenValidity) {
+	public void setRefreshTokenValidity(Integer refreshTokenValidity) {
 		this.refreshTokenValidity = refreshTokenValidity;
 	}
 
-	/**
-	 * @return the redirectUri
-	 */
 	public String getRedirectUri() {
 		return redirectUri;
 	}
 
-	/**
-	 * @param redirectUri the redirectUri to set
-	 */
 	public void setRedirectUri(String redirectUri) {
 		this.redirectUri = redirectUri;
 	}
 
-	/**
-	 * @return the additionalInfo
-	 */
 	public String getAdditionalInfo() {
 		return additionalInfo;
 	}
 
-	/**
-	 * @param additionalInfo the additionalInfo to set
-	 */
 	public void setAdditionalInfo(String additionalInfo) {
 		this.additionalInfo = additionalInfo;
 	}
 
-	/**
-	 * @return the autoApprove
-	 */
 	public boolean isAutoApprove() {
 		return autoApprove;
 	}
 
-	/**
-	 * @param autoApprove the autoApprove to set
-	 */
 	public void setAutoApprove(boolean autoApprove) {
 		this.autoApprove = autoApprove;
 	}
 
-	/**
-	 * @return the account
-	 */
 	public String getAccount() {
 		return account;
 	}
 
-	/**
-	 * @param account the account to set
-	 */
 	public void setAccount(String account) {
 		this.account = account;
-	}	
+	}
+
+	public List<Role> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(List<Role> roles) {
+		this.roles = roles;
+	}
+	
 }

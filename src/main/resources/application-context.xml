@@ -22,7 +22,7 @@
 	<jpa:repositories base-package="com.practice.acl.repo"/>
 	<mvc:annotation-driven>
 		<mvc:argument-resolvers>
-			
+			<bean class="com.practice.acl.permission.CustomArgumentResolver"/>
 		</mvc:argument-resolvers>
 	</mvc:annotation-driven>
 	<context:annotation-config/>

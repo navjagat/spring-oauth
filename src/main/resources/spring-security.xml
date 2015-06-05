@@ -24,7 +24,7 @@
 
 	<sec:http pattern="${auth.url}" create-session="stateless"
 		authentication-manager-ref="oauthAuthenticationManager" use-expressions="true">
-		<sec:intercept-url pattern="${auth.url}" access="authenticated" />
+		<sec:intercept-url pattern="${auth.url}" access="permitAll" />
 		<sec:http-basic entry-point-ref="clientAuthenticationEntryPoint" />
 		<sec:custom-filter ref="clientCredentialsTokenEndpointFilter"
 			after="BASIC_AUTH_FILTER" />
@@ -84,8 +84,7 @@
 	<bean id="user" class="com.practice.acl.service.Impl.CustomUserDetailsService"/>
 
 	<bean id="clientDetails"
-		class="org.springframework.security.oauth2.provider.client.JdbcClientDetailsService"
-		c:_0-ref="dataSource" />
+		class="com.practice.acl.service.Impl.CustomClientDetailsService"/>
 
 	<bean id="clientDetailsService"
 		class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService"

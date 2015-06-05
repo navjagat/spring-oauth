@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.practice.acl.entiry.Client;
 import com.practice.acl.entiry.Profile;
+import com.practice.acl.permission.ActiveClient;
 import com.practice.acl.service.ProfileService;
 
 @RestController
@@ -40,7 +42,7 @@ public class ProfileController {
 	
 	@RequestMapping(value="/{id}", method=RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
-	public Profile retrieve(@PathVariable Long id){
+	public Profile retrieve(@PathVariable Long id,  @ActiveClient Client client){
 		return service.retriece(id);
 	}
 	
