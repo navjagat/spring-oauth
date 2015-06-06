@@ -20,6 +20,6 @@ public interface ProfileService {
 	@PreAuthorize("hasPermission(#id,'read') and #oauth2.hasScope('read')")
 	public Profile retriece(Long id);
 	
-	@PreAuthorize("hasPermission(#profile,'read') and #oauth2.hasScope('read')")
+	@PreAuthorize("#oauth2.hasScope('read')")
 	public List<Profile> retrieveAll();
 }
