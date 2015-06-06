@@ -1,41 +1,31 @@
-DROP TABLE IF EXISTS oauth_client_details;
- 
-CREATE TABLE oauth_client_details (
-  client_id varchar(256) NOT NULL,
-  resource_ids varchar(256) DEFAULT NULL,
-  client_secret varchar(256) DEFAULT NULL,
-  scope varchar(256) DEFAULT NULL,
-  authorized_grant_types varchar(256) DEFAULT NULL,
-  web_server_redirect_uri varchar(256) DEFAULT NULL,
-  authorities varchar(256) DEFAULT NULL,
-  access_token_validity int(11) DEFAULT NULL,
-  refresh_token_validity int(11) DEFAULT NULL,
-  additional_information varchar(4096) DEFAULT NULL,
-  autoapprove varchar(4096) DEFAULT NULL,
-  PRIMARY KEY (client_id)
-);
- 
- 
-INSERT INTO oauth_client_details(client_id, resource_ids, client_secret, scope, authorized_grant_types, authorities, access_token_validity, refresh_token_validity)
-VALUES ('navneet', 'my-gateway', '$2a$06$QpJRaWchCY3T/3eK2gTDHOHVisGhk0go0npFGaWkem5VzU9xjgoiW', 'trust,read,write', 'client_credentials,authorization_code,implicit,password,refresh_token', 'ROLE_USER', '4500', '45000');
- 
-  DROP TABLE IF EXISTS oauth_access_token;
- 
-  CREATE TABLE oauth_access_token (
-  token_id varchar(256) DEFAULT NULL,
-  token blob,
-  authentication_id varchar(256) DEFAULT NULL,
-  user_name varchar(256) DEFAULT NULL,
-  client_id varchar(256) DEFAULT NULL,
-  authentication blob,
-  refresh_token varchar(256) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
- 
- 
-DROP TABLE IF EXISTS oauth_refresh_token;
- 
-CREATE TABLE oauth_refresh_token (
-  token_id varchar(256) DEFAULT NULL,
-  token blob,
-  authentication blob
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Inserting Grants
+INSERT INTO `oauth`.`grants` (`id`, `grant_name`) VALUES ('1', 'password');
+INSERT INTO `oauth`.`grants` (`id`, `grant_name`) VALUES ('2', 'client_credentials');
+INSERT INTO `oauth`.`grants` (`id`, `grant_name`) VALUES ('3', 'refresh_token');
+INSERT INTO `oauth`.`grants` (`id`, `grant_name`) VALUES ('4', 'authorization_code');
+INSERT INTO `oauth`.`grants` (`id`, `grant_name`) VALUES ('5', 'implicit');
+
+-- Inserting scopes
+INSERT INTO `oauth`.`scope` (`id`, `scope`) VALUES ('1', 'read');
+INSERT INTO `oauth`.`scope` (`id`, `scope`) VALUES ('2', 'write');
+INSERT INTO `oauth`.`scope` (`id`, `scope`) VALUES ('3', 'trust');
+
+-- Inserting Roles
+INSERT INTO `oauth`.`role` (`id`, `role`) VALUES ('1', 'ROLE_ADMIN');
+INSERT INTO `oauth`.`role` (`id`, `role`) VALUES ('2', 'ROLE_USER');
+
+-- Tying scopes to roles
+INSERT INTO `oauth`.`role_scope` (`role_id`, `scope_id`) VALUES ('1', '1');
+INSERT INTO `oauth`.`role_scope` (`role_id`, `scope_id`) VALUES ('1', '2');
+INSERT INTO `oauth`.`role_scope` (`role_id`, `scope_id`) VALUES ('1', '3');
+INSERT INTO `oauth`.`role_scope` (`role_id`, `scope_id`) VALUES ('2', '1');
+
+-- Client Info
+INSERT INTO `oauth`.`oauth_client_details` (`client_id`, `access_token_validity`, `account`, `autoApprove`, `client_secret`, `refresh_token_validity`, `resource_ids`) 
+VALUES ('abc@mail.com', '600', 'MYCOMP', 1, '$2a$06$QpJRaWchCY3T/3eK2gTDHOHVisGhk0go0npFGaWkem5VzU9xjgoiW', '6000', 'my-gateway');
+
+-- Attaching roles and grants to client. Here client is admin with grant type client_credentials and refresh_token
+INSERT into oauth.client_role VALUES ("abc@mail.com",1);
+INSERT INTO `oauth`.`client_grant` (`client_id`, `grant_id`) VALUES ('abc@mail.com', '2');
+INSERT INTO `oauth`.`client_grant` (`client_id`, `grant_id`) VALUES ('abc@mail.com', '3');
